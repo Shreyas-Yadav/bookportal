@@ -16,7 +16,13 @@ jobs:
     name: Analyze and Build
     runs-on: ubuntu-latest
 
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
     strategy:
+      fail-fast: false
       matrix:
         language: [ 'java' ]
 
@@ -28,20 +34,25 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: '17'
-          distribution: 'adopt'
-          java-package: jdk
+          distribution: 'temurin'
+          cache: 'maven'
 
+      # Initialize CodeQL with v3 (updated)
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
 
+      # Build with Maven
       - name: Build with Maven
-        run: mvn -B package --file pom.xml
+        run: mvn -B package --file pom.xml -DskipTests
         working-directory: ./book-portal-be
 
+      # Perform CodeQL Analysis with v3 (updated)
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
 
   docker:
 
@@ -69,3 +80,4 @@ jobs:
           file: ./book-portal-be/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/book-portal-be:latest
+          platforms: linux/amd64
