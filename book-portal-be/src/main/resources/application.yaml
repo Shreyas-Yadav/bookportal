@@ -3,10 +3,10 @@ spring:
     pathmatch:
       matching-strategy: ant_path_matcher
   datasource:
-    username: uqi
-    password: Deneme123..
+    username: book_portal
+    password: book_portal
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://uqi123.mysql.database.azure.com:3306/book_portal?useSSL=true
+    url: jdbc:mysql://mysql:3306/book_portal?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
 #    hikari:
 #      connection-timeout: 12000
   jpa:

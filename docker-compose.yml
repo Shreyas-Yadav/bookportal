@@ -1,17 +1,78 @@
-version: "3"
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: "book-portal-mysql"
+    platform: linux/amd64
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: book_portal
+      MYSQL_USER: book_portal
+      MYSQL_PASSWORD: book_portal
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  db-seeder:
+    image: mysql:8.0
+    container_name: "book-portal-db-seeder"
+    platform: linux/amd64
+    restart: "no"
+    user: "0:0"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: rootpassword
+      MYSQL_DB: book_portal
+      DATA_ZIP: /seed/dbData.zip
+      TABLE_CHECK: books
+    volumes:
+      - ./dbData.zip:/seed/dbData.zip:ro
+      - ./scripts:/seed/scripts:ro
+    entrypoint: ["/bin/sh", "/seed/scripts/seed-db.sh"]
+
   book-portal-be:
     image: ugurcanerdogan/book-portal-be:latest
     container_name: "book-portal-be"
+    platform: linux/amd64
+    depends_on:
+      mysql:
+        condition: service_healthy
+      db-seeder:
+        condition: service_completed_successfully
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/book_portal?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: book_portal
+      SPRING_DATASOURCE_PASSWORD: book_portal
 
   book-portal-fe:
     image: ugurcanerdogan/book-portal-fe:latest
     container_name: "book-portal-fe"
+    platform: linux/amd64
     depends_on:
       - book-portal-be
+
   proxy:
     image: ugurcanerdogan/book-portal-proxy:latest
     container_name: "book-portal-proxy"
+    platform: linux/amd64
     restart: always
+    depends_on:
+      - book-portal-fe
     ports:
       - "80:80"
+
+volumes:
+  mysql-data:
