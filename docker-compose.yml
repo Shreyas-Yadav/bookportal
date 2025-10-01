@@ -39,9 +39,10 @@ services:
       TABLE_CHECK: books
 
   book-portal-be:
-    image: shreyasyadav/bookstore-repo:backend
+    image: shreyasyadav/book-portal-be:latest
     container_name: "book-portal-be"
     platform: linux/amd64
+    restart: unless-stopped
     depends_on:
       mysql:
         condition: service_healthy
@@ -53,14 +54,15 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD}
 
   book-portal-fe:
-    image: shreyasyadav/bookstore-repo:frontend
+    image: shreyasyadav/book-portal-fe:latest
     container_name: "book-portal-fe"
     platform: linux/amd64
+    restart: unless-stopped
     depends_on:
       - book-portal-be
 
   proxy:
-    image: shreyasyadav/bookstore-repo:proxy
+    image: shreyasyadav/book-portal-proxy:latest
     container_name: "book-portal-proxy"
     platform: linux/amd64
     restart: always
