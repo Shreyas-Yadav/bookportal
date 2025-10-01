@@ -17,7 +17,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
           instance-ids: ${{ secrets.AWS_INSTANCE_ID }}
-          working-directory: /home/ubuntu/bookportal
+          working-directory: /home/ubuntu/BookPortal
           command: |
             docker-compose stop
             docker-compose rm -f
