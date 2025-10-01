@@ -1,3 +1,5 @@
+name: bookportal
+
 services:
   mysql:
     image: mysql:8.0
@@ -5,43 +7,36 @@ services:
     platform: linux/amd64
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: book_portal
-      MYSQL_USER: book_portal
-      MYSQL_PASSWORD: book_portal
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-book_portal}
+      MYSQL_USER: ${MYSQL_USER:-book_portal}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./docker/mysql-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpassword"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 5s
       timeout: 5s
       retries: 20
       start_period: 10s
 
   db-seeder:
-    image: mysql:8.0
+    image: shreyasyadav/bookstore-repo:db-seeder
     container_name: "book-portal-db-seeder"
     platform: linux/amd64
     restart: "no"
-    user: "0:0"
     depends_on:
       mysql:
         condition: service_healthy
     environment:
       MYSQL_HOST: mysql
       MYSQL_PORT: 3306
-      MYSQL_USER: root
-      MYSQL_PASSWORD: rootpassword
-      MYSQL_DB: book_portal
-      DATA_ZIP: /seed/dbData.zip
+      MYSQL_USER: ${MYSQL_ROOT_USER:-root}
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD}
+      MYSQL_DB: ${MYSQL_DATABASE:-book_portal}
       TABLE_CHECK: books
-    volumes:
-      - ./dbData.zip:/seed/dbData.zip:ro
-      - ./scripts:/seed/scripts:ro
-    entrypoint: ["/bin/sh", "/seed/scripts/seed-db.sh"]
 
   book-portal-be:
     image: shreyasyadav/bookstore-repo:backend
@@ -53,9 +48,9 @@ services:
       db-seeder:
         condition: service_completed_successfully
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/book_portal?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: book_portal
-      SPRING_DATASOURCE_PASSWORD: book_portal
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-book_portal}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-book_portal}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD}
 
   book-portal-fe:
     image: shreyasyadav/bookstore-repo:frontend
