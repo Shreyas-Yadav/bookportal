@@ -51,7 +51,7 @@ const SignUpPage = (props) => {
           <UqiTextInput name="username" placeholder={t("Username")}></UqiTextInput>
           <UqiTextInput name="name" placeholder={t("Name-Surname")}></UqiTextInput>
           <UqiTextInput name="password" placeholder={t("Password")} type="password"></UqiTextInput>
-          <Button color="pink" type="submit">{t("Sign Up")}</Button>
+          <Button color="red" type="submit">{t("Sign Up")}</Button>
         </Form>
       </Formik>
     </Segment>
