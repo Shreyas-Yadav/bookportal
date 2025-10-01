@@ -40,7 +40,7 @@ const Navi = () => {
   };
 
   let panel = (
-    <Dropdown item text={t("Admin Panel")}>
+    <Dropdown item text={t("Admin's Panel")}>
       <Dropdown.Menu>
         <Link to={`/books/add`}>
           <Dropdown.Item text={t("Add Book")} icon="add" />
